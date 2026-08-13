@@ -1,0 +1,85 @@
+总分100分
+
+1. 交付结构与MATLAB入口
+分值：8分
+标准答案：output包含ALERT_CALIBRATION.md、matlab程序和results结果表，主入口为output/matlab/run_edge_degradation_audit.m。
+关键字段：output/ALERT_CALIBRATION.md、output/matlab、output/results。
+容差：MATLAB函数拆分、变量名和注释允许变化，宣布的业务交付物不能缺失。
+失败边界：主入口或核心结果表缺失、文件无法读取、主要输入没有使用。
+可观察证据：output目录、MATLAB函数签名和结果表表头。
+客观硬性标准：交付中存在可从输入生成归一化时序、退化定位和告警标定结果的MATLAB入口。
+阈值：声明的业务交付物完整率为100%。
+优先级：Gate项
+所属层级：L1任务指令遵循层
+
+2. 输入与质量位使用
+分值：15分
+标准答案：程序读取edge_hit_rate.csv、degradation_contract.json和starter/global_normalize_and_fft.m，只将quality_flag等于accepted_quality_flag的样本纳入拟合与检测。
+关键字段：sample_id、time_days、quality_flag、baseline_anchor、accepted_quality_flag。
+容差：sample_id按集合精确匹配，连续数值按合同容差比较。
+失败边界：任一业务输入未读取，质量位过滤口径与合同不一致，或输出中的used_in_detection无法从输入复算。
+可观察证据：edge_hit_rate.csv、degradation_contract.json、normalized_edge_signal.csv和MATLAB读取代码。
+客观硬性标准：每个sample_id的质量使用状态都与合同对应。
+阈值：质量位错用和输入漏用数均为0。
+优先级：Gate项
+所属层级：L3输入数据导入与完整性层
+
+3. 分段基线与归一化时序
+分值：17分
+标准答案：稳定窗的质量有效样本按baseline_model.columns建立设计矩阵，以1/hit_sigma^2加权估计系数，normalized_hit_index等于hit_index除以正的fitted_baseline。
+关键字段：coefficient、value、normalized_hit_index、normalized_sigma、segment_id。
+容差：系数与归一化数值按关键标准答案中的容差比较，行顺序不计分。
+失败边界：混用质量无效点，忽略采集段截距，丢弃异方差权重，或产生非正基线。
+可观察证据：baseline_coefficients.csv、normalized_edge_signal.csv和fit_edge_baseline.m。
+客观硬性标准：系数集合与合同列集合相同，归一化时轴可由输入和系数复算。
+阈值：系数缺失、非正基线和超容差归一化记录数均为0。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+4. 周期候选搜索
+分值：16分
+标准答案：按detection字段声明的间隔、窗口、相位、最少点数和最少可观测窗数计算盒内外加权差异，每个间隔保留一个有效最优候选。
+关键字段：interval_days、window_days、phase_index、drop_bps、score、affected_points、observed_windows。
+容差：循环相位格离散值精确匹配，连续统计量按关键标准答案容差比较。
+失败边界：候选不在合同网格，盒内外权重口径不同，无效候选进入排名，或某个间隔的最优候选选错。
+可观察证据：interval_scan.csv、score_drop_box.m、search_periodic_degradation.m和degradation_contract.json。
+客观硬性标准：interval_scan.csv的主键集合与合同间隔网格一致，每行为该间隔的最高排名候选。
+阈值：缺失间隔、无效候选和排名错误数均为0。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+5. 退化解与局部窗口账
+分值：16分
+标准答案：degradation_solution.csv按tie_break选出全局退化解，degradation_windows.csv按所选周期和相位聚合每个可观测窗的中心、点数和局部跌落。
+关键字段：interval_days、window_days、phase_index、epoch_days、window_number、center_days、observed_points、local_drop_bps。
+容差：离散网格字段精确匹配，跌落与窗口中心按关键标准答案容差比较。
+失败边界：全局解不是interval_scan.csv的最高排名行，窗口遗漏，或局部跌落不是独立聚合值。
+可观察证据：degradation_solution.csv、degradation_windows.csv和interval_scan.csv。
+客观硬性标准：退化解与合同排序一致，窗口账覆盖所有有效观测窗。
+阈值：退化解差异、窗口缺失和聚合超差数均为0。
+优先级：高权重项
+所属层级：L5多源关联与字段一致性层
+
+6. 故障标定与检出率边界
+分值：17分
+标准答案：去除已观测跌落后，每个合同注入组合独立起步，detected由间隔误差、循环相位误差、得分和跌落误差联合判定，检出率边界是首个达到detection_rate_threshold的跌落强度。
+关键字段：injection_id、injected_interval_days、injected_drop_bps、detected_interval_days、detected_score、relative_interval_error、phase_bin_error、relative_drop_error、detected、detection_rate。
+容差：组合集合按合同精确比较，连续数值按对应detection阈值和关键标准答案容差比较。
+失败边界：不同注入串扰，仅用score判定detected，汇总分母与合同组合不一致，或边界不是首个达标强度。
+可观察证据：fault_injection_detection.csv、detection_sensitivity.csv、degradation_contract.json和run_edge_degradation_audit.m。
+客观硬性标准：每个注入组合有且仅有一行明细，汇总可由明细按跌落强度重算。
+阈值：注入缺失、重复、判定错误和汇总超差数均为0。
+优先级：高权重项
+所属层级：L6领域计算与专业规则层
+
+7. 告警标定说明与跨产物一致性
+分值：11分
+标准答案：ALERT_CALIBRATION.md说明基线口径、退化窗口、检出率边界、灰度用法和后续职责，引用的数值与结果表一致。
+关键字段：基线口径、interval_days、window_days、phase_index、检出率边界、灰度起点、维护职责。
+容差：段落结构和措辞可以变化，业务数值与职责不能改变。
+失败边界：说明引用不存在的结果，数值与CSV矛盾，把离线标定写成已完成灰度观察，或没有明确成果消费者。
+可观察证据：ALERT_CALIBRATION.md、degradation_solution.csv和detection_sensitivity.csv。
+客观硬性标准：说明中的数值都能在结果表定位，且职责与Prompt一致。
+阈值：跨产物数值差异和职责缺失数均为0。
+优先级：普通项
+所属层级：L9跨产物一致性与可追溯层

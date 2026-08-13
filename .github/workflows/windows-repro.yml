@@ -1,0 +1,20 @@
+name: q2458-windows-repro
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: matlab-actions/setup-matlab@v3
+        with:
+          release: R2025b
+      - name: Rebuild business deliverables
+        shell: pwsh
+        run: ./qa/run_windows.ps1

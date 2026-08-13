@@ -1,0 +1,7 @@
+1. 在MATLAB中用readtable读取edge_hit_rate.csv，按quality_flag和baseline_anchor形成检测与基线拟合掩码。
+2. 用jsondecode读取degradation_contract.json，将基线列、权重、周期网格和候选排序映射为MATLAB数组。
+3. 按合同列构建设计矩阵，通过误差加权矩阵左除估计分段零点和公共趋势系数。
+4. 将拟合基线作用到全时轴，生成归一化命中率、归一化误差和可用样本标记。
+5. 用mod构造循环相位，遍历合同网格并将有效候选写入interval_scan.csv。
+6. 对所选周期和相位逐窗聚合，生成degradation_solution.csv与degradation_windows.csv。
+7. 用去除已观测跌落的残差完成合同注入标定，导出明细和检出率汇总供灰度负责人使用。

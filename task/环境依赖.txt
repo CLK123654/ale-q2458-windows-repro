@@ -1,0 +1,7 @@
+操作系统： Windows11。
+
+主软件： MATLABR2025b，使用Base MATLAB的readtable、jsondecode、table、writetable、mod和矩阵左除完成数值工作。
+
+代码不依赖额外工具箱或第三方包。普通多核CPU可完成合同网格搜索，计算不使用GPU。磁盘需容纳输入CSV、MATLAB源文件和生成的结果表。超时设置以能完整跑完degradation_contract.json声明的搜索和标定网格为准。
+
+主要风险是质量异常点混入基线、公共趋势吸收局部跌落，或循环相位跨边界时将样本归入错误窗口。
